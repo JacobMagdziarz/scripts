@@ -5,7 +5,7 @@ Thanks to mdonkers for the inspiration at https://gist.github.com/mdonkers/63e11
 """
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
-import logging, ssl, time, argparse
+import logging, ssl, time, argparse, os
 
 
 class S(BaseHTTPRequestHandler):
@@ -18,8 +18,8 @@ class S(BaseHTTPRequestHandler):
     def _set_cors_response(self):
         if 'Origin' in self.headers.keys():
             self.send_header('Access-Control-Allow-Origin', self.headers.get('Origin'))
-            self.send_header('Access-Control-Allow-Credentials', 'true')
             self.send_header('Vary', 'Origin')
+            self.send_header('Access-Control-Allow-Credentials', 'true')
         if 'Access-Control-Request-Headers' in self.headers.keys():
             self.send_header('Access-Control-Allow-Headers', self.headers.get('Access-Control-Request-Headers'))
         if 'Access-Control-Request-Method' in self.headers.keys():
@@ -70,6 +70,8 @@ def run(port, domain, cert, key, outfile, is_ssl=False, server_class=HTTPServer,
             exit(2)
     else:
         print('Serving http://' + domain + ':' + str(port) + '...')
+    print('Logging full requests to ' + os.getcwd() + '/' + outfile)
+    print('Monitoring for requests...\n')
     logging.info('Starting httpd...\n')
     logging.info('Serving on port ' + str(port) + '...\n')
     try:
@@ -83,7 +85,10 @@ def run(port, domain, cert, key, outfile, is_ssl=False, server_class=HTTPServer,
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description='Python HTTP server that logs all requests and attempts to '
+                                                 'respond correctly with a 200 OK. Some of the main features:\n'
+                                                 '- Supports CORS (arbitrary Origin w/ creds)\n'
+                                                 '- Supports TLS\n')
     parser.add_argument('-d', '--domain', action='store', default='localhost')
     parser.add_argument('-p', '--port', action='store', default=8080)
     parser.add_argument('--ssl', action='store_true', default=False)
